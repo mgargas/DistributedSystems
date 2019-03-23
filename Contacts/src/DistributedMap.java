@@ -1,7 +1,4 @@
-import org.jgroups.JChannel;
-import org.jgroups.Message;
-import org.jgroups.ReceiverAdapter;
-import org.jgroups.View;
+import org.jgroups.*;
 import org.jgroups.util.Util;
 
 import java.io.DataInputStream;
@@ -9,14 +6,16 @@ import java.io.DataOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
+import java.util.Vector;
 
 public class DistributedMap extends ReceiverAdapter implements SimpleStringMap {
     final HashMap<String, Integer> contacts = new HashMap<>();
-    JChannel channel;
-    String user_name = System.getProperty("user.name", "n/a");
+    private JChannel channel;
+    private String user_name = System.getProperty("user.name", "n/a");
 
     public void viewAccepted(View new_view) {
         System.out.println("** view: " + new_view);
+        handleView(channel, new_view);
     }
 
     public void receive(Message msg) {
@@ -102,5 +101,40 @@ public class DistributedMap extends ReceiverAdapter implements SimpleStringMap {
             e.printStackTrace();
         }
         return value;
+    }
+
+    private static void handleView(JChannel ch, View new_view) {
+        if(new_view instanceof MergeView) {
+            ViewHandler handler=new ViewHandler(ch, (MergeView)new_view);
+            // requires separate thread as we don't want to block JGroups
+            handler.start();
+        }
+    }
+
+    private static class ViewHandler extends Thread {
+        JChannel ch;
+        MergeView view;
+
+        private ViewHandler(JChannel ch, MergeView view) {
+            this.ch = ch;
+            this.view = view;
+        }
+
+        public void run() {
+            Vector<View> subgroups = (Vector<View>)view.getSubgroups();
+            View tmp_view = subgroups.firstElement(); // picks the first
+            Address local_addr = ch.getAddress();
+            if (!tmp_view.getMembers().contains(local_addr)) {
+                System.out.println("Not member of the new primary partition ("
+                        + tmp_view + "), will re-acquire the state");
+                try {
+                    ch.getState(null, 30000);
+                } catch (Exception ex) {
+                }
+            } else {
+                System.out.println("Not member of the new primary partition ("
+                        + tmp_view + "), will do nothing");
+            }
+        }
     }
 }
