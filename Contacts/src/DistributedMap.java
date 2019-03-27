@@ -1,10 +1,16 @@
 import org.jgroups.*;
+import org.jgroups.protocols.*;
+import org.jgroups.protocols.pbcast.GMS;
+import org.jgroups.protocols.pbcast.NAKACK2;
+import org.jgroups.protocols.pbcast.STABLE;
+import org.jgroups.stack.ProtocolStack;
 import org.jgroups.util.Util;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Vector;
 
@@ -59,7 +65,26 @@ public class DistributedMap extends ReceiverAdapter implements SimpleStringMap {
 
     void start() throws Exception {
         channel = new JChannel().setReceiver(this);
-        channel.connect("ChatCluster");
+        ProtocolStack stack = new ProtocolStack();
+        stack.setChannel(channel);
+        stack.addProtocol(new UDP().setValue("mcast_group_addr", InetAddress.getByName("230.100.200.100")))
+                .addProtocol(new PING())
+                .addProtocol(new MERGE3())
+                .addProtocol(new FD_SOCK())
+                .addProtocol(new FD_ALL()
+                        .setValue("timeout", 12000)
+                        .setValue("interval", 3000))
+                .addProtocol(new VERIFY_SUSPECT())
+                .addProtocol(new BARRIER())
+                .addProtocol(new NAKACK2())
+                .addProtocol(new UNICAST3())
+                .addProtocol(new STABLE())
+                .addProtocol(new GMS())
+                .addProtocol(new UFC())
+                .addProtocol(new MFC())
+                .addProtocol(new FRAG2());
+        stack.init();
+        channel.connect("Chat");
         channel.getState(null, 10000);
     }
 
