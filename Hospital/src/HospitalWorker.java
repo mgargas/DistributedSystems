@@ -5,14 +5,17 @@ import java.io.IOException;
 abstract public class HospitalWorker {
     Channel channel;
     static final boolean AUTO_ACK = false;
-    final static String INJURY_QUEUE = "injury_queue";
     final static String HOSPITAL_EXCHANGE = "hospital_exchange";
+    final static String LOG_EXCHANGE = "logging_exchange";
+    final static String LOG_SENDBOX = "log_sendbox";
+
     HospitalWorker() throws Exception {
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost("localhost");
         Connection connection = factory.newConnection();
         channel = connection.createChannel();
         channel.exchangeDeclare(HOSPITAL_EXCHANGE, BuiltinExchangeType.DIRECT);
+        channel.exchangeDeclare(LOG_EXCHANGE, BuiltinExchangeType.FANOUT);
     }
 
     void registerConsumer(String queue, String messageHeader) throws Exception {

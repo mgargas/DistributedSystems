@@ -7,6 +7,7 @@ public class Doctor extends HospitalWorker{
     static final String[] injuries = {"elbow", "hip", "knee"};
     private final String replyQueueName;
     private final AMQP.BasicProperties props;
+    private final String infoInbox;
     private Doctor() throws Exception{
         super();
         this.replyQueueName = channel.queueDeclare().getQueue();
@@ -15,6 +16,9 @@ public class Doctor extends HospitalWorker{
                 .replyTo(replyQueueName)
                 .build();
         registerConsumer(replyQueueName, "Received: ");
+        infoInbox = channel.queueDeclare().getQueue();
+        channel.queueBind(this.infoInbox, LOG_EXCHANGE, "");
+        registerConsumer(infoInbox, "INFO: ");
     }
 
     public static void main(String[] args) {
@@ -37,6 +41,7 @@ public class Doctor extends HospitalWorker{
 
     private void sendMessage(String message, String injury) throws Exception{
         channel.basicPublish(HOSPITAL_EXCHANGE, injury, props, message.getBytes(StandardCharsets.UTF_8));
+        channel.basicPublish("", LOG_SENDBOX, null, (message + " " + System.currentTimeMillis()).getBytes(StandardCharsets.UTF_8));
         System.out.println("Sent: " + message);
     }
 }

@@ -12,9 +12,12 @@ import java.util.List;
 public class Technician extends HospitalWorker {
     private List<String> specialisationsList = new LinkedList<>();
     private Consumer consumer;
+    private String infoInbox;
     private Technician() throws Exception {
         super();
-
+        infoInbox = channel.queueDeclare().getQueue();
+        channel.queueBind(this.infoInbox, LOG_EXCHANGE, "");
+        registerConsumer(infoInbox, "INFO: ");
     }
 
     public static void main(String[] args) throws Exception {
@@ -34,6 +37,7 @@ public class Technician extends HospitalWorker {
                     String message = new String(body);
                     technician.channel.basicAck(envelope.getDeliveryTag(), false);
                     technician.channel.basicPublish("", properties.getReplyTo(), null, (message + "done").getBytes(StandardCharsets.UTF_8));
+                    technician.channel.basicPublish("", LOG_SENDBOX, null, (message + " done " + System.currentTimeMillis()).getBytes(StandardCharsets.UTF_8));
                     System.out.println("Received: " + message);
                 }
 
