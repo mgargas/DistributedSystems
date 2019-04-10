@@ -4,6 +4,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.stream.IntStream;
 
 public class Doctor extends HospitalWorker{
+    static final String[] injuries = {"elbow", "hip", "knee"};
     private Doctor() throws Exception{
         super();
     }
@@ -12,9 +13,10 @@ public class Doctor extends HospitalWorker{
         try {
             Doctor doctor = new Doctor();
             IntStream.range(0, 10).forEach(value -> {
-                String message = "Elbow injury" + value;
+                int index = (int)(Math.random() * 10)%3;
+                String message = injuries[index] + value;
                 try {
-                    doctor.sendMessage(message);
+                    doctor.sendMessage(message, injuries[index]);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -25,8 +27,8 @@ public class Doctor extends HospitalWorker{
 
     }
 
-    private void sendMessage(String message) throws Exception{
-        channel.basicPublish("", INJURY_QUEUE, MessageProperties.PERSISTENT_TEXT_PLAIN, message.getBytes(StandardCharsets.UTF_8));
+    private void sendMessage(String message, String injury) throws Exception{
+        channel.basicPublish(HOSPITAL_EXCHANGE, injury, MessageProperties.PERSISTENT_TEXT_PLAIN, message.getBytes(StandardCharsets.UTF_8));
         System.out.println("Sent: " + message);
     }
 }

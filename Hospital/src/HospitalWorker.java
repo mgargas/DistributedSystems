@@ -6,13 +6,13 @@ abstract public class HospitalWorker {
     Channel channel;
     static final boolean AUTO_ACK = false;
     final static String INJURY_QUEUE = "injury_queue";
-
+    final static String HOSPITAL_EXCHANGE = "hospital_exchange";
     HospitalWorker() throws Exception {
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost("localhost");
         Connection connection = factory.newConnection();
         channel = connection.createChannel();
-        channel.queueDeclare(INJURY_QUEUE, true, false, false, null);
+        channel.exchangeDeclare(HOSPITAL_EXCHANGE, BuiltinExchangeType.DIRECT);
     }
 
     void registerConsumer(String queue, String messageHeader) throws Exception {
