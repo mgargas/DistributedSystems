@@ -1,12 +1,20 @@
-import com.rabbitmq.client.MessageProperties;
+import com.rabbitmq.client.AMQP;
 
 import java.nio.charset.StandardCharsets;
 import java.util.stream.IntStream;
 
 public class Doctor extends HospitalWorker{
     static final String[] injuries = {"elbow", "hip", "knee"};
+    private final String replyQueueName;
+    private final AMQP.BasicProperties props;
     private Doctor() throws Exception{
         super();
+        this.replyQueueName = channel.queueDeclare().getQueue();
+        this.props = new AMQP.BasicProperties
+                .Builder()
+                .replyTo(replyQueueName)
+                .build();
+        registerConsumer(replyQueueName, "Received: ");
     }
 
     public static void main(String[] args) {
@@ -28,7 +36,7 @@ public class Doctor extends HospitalWorker{
     }
 
     private void sendMessage(String message, String injury) throws Exception{
-        channel.basicPublish(HOSPITAL_EXCHANGE, injury, MessageProperties.PERSISTENT_TEXT_PLAIN, message.getBytes(StandardCharsets.UTF_8));
+        channel.basicPublish(HOSPITAL_EXCHANGE, injury, props, message.getBytes(StandardCharsets.UTF_8));
         System.out.println("Sent: " + message);
     }
 }

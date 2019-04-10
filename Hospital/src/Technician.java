@@ -4,6 +4,7 @@ import com.rabbitmq.client.DefaultConsumer;
 import com.rabbitmq.client.Envelope;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -32,7 +33,8 @@ public class Technician extends HospitalWorker {
                 } finally {
                     String message = new String(body);
                     technician.channel.basicAck(envelope.getDeliveryTag(), false);
-                    System.out.println("Technician did: " + message);
+                    technician.channel.basicPublish("", properties.getReplyTo(), null, (message + "done").getBytes(StandardCharsets.UTF_8));
+                    System.out.println("Received: " + message);
                 }
 
             }
