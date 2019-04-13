@@ -3,22 +3,19 @@ import com.rabbitmq.client.AMQP;
 import java.nio.charset.StandardCharsets;
 import java.util.stream.IntStream;
 
-public class Doctor extends HospitalWorker{
-    static final String[] injuries = {"elbow", "hip", "knee"};
+public class Doctor extends InjurySpecialist {
+    private static final String[] injuries = {"elbow", "hip", "knee"};
     private final String replyQueueName;
     private final AMQP.BasicProperties props;
-    private final String infoInbox;
     private Doctor() throws Exception{
         super();
-        this.replyQueueName = channel.queueDeclare().getQueue();
+        this.replyQueueName = this.channel.queueDeclare().getQueue();
         this.props = new AMQP.BasicProperties
                 .Builder()
                 .replyTo(replyQueueName)
                 .build();
-        registerConsumer(replyQueueName, "Received: ");
-        infoInbox = channel.queueDeclare().getQueue();
-        channel.queueBind(this.infoInbox, LOG_EXCHANGE, "");
-        registerConsumer(infoInbox, "INFO: ");
+        this.channel.queueBind(this.replyQueueName, INJURY_EXCHANGE, "reply." + this.replyQueueName);
+        registerConsumer(this.replyQueueName, "Received: ", false, "");
     }
 
     public static void main(String[] args) {
@@ -40,8 +37,7 @@ public class Doctor extends HospitalWorker{
     }
 
     private void sendMessage(String message, String injury) throws Exception{
-        channel.basicPublish(HOSPITAL_EXCHANGE, injury, props, message.getBytes(StandardCharsets.UTF_8));
-        channel.basicPublish("", LOG_SENDBOX, null, (message + " " + System.currentTimeMillis()).getBytes(StandardCharsets.UTF_8));
+        channel.basicPublish(INJURY_EXCHANGE, injury, props, message.getBytes(StandardCharsets.UTF_8));
         System.out.println("Sent: " + message);
     }
 }

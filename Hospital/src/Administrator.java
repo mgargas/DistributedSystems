@@ -1,19 +1,19 @@
 import java.util.stream.IntStream;
 
-public class Administrator extends HospitalWorker{
+public class Administrator extends SystemWorker {
+    static final String LOG_HEADER = "LOG: ";
     private Administrator() throws Exception{
         super();
-        channel.queueDeclare(LOG_SENDBOX, true, false, false, null);
-        registerConsumer(LOG_SENDBOX, "LOG: ");
+        registerConsumer(INJURY_LOGGING_QUEUE, LOG_HEADER, false, "");
     }
 
     public static void main(String[] args) throws Exception {
         Administrator administrator = new Administrator();
-        IntStream.range(0, 10).forEach(value ->
+        IntStream.range(0, 20).forEach(value ->
         {
             String message = "INFORMATION NUMBER " + value;
             try {
-                administrator.channel.basicPublish(LOG_EXCHANGE, "", null, message.getBytes());
+                administrator.channel.basicPublish(INFO_EXCHANGE, "", null, message.getBytes());
                 Thread.sleep(1500);
             } catch (Exception e) {
                 e.printStackTrace();
