@@ -19,9 +19,9 @@ abstract public class SystemWorker {
         this.channel = connection.createChannel();
         this.channel.exchangeDeclare(INJURY_EXCHANGE, BuiltinExchangeType.TOPIC);
         this.channel.queueDeclare(INJURY_LOGGING_QUEUE, true, false, false, null);
-        channel.queueBind(INJURY_LOGGING_QUEUE, INJURY_EXCHANGE, REQUEST_BINDING_KEY);
-        channel.queueBind(INJURY_LOGGING_QUEUE, INJURY_EXCHANGE, REPLY_BINDING_KEY);
-//        this.channel.queueBind(INJURY_LOGGING_QUEUE, INJURY_EXCHANGE, "#");
+//        channel.queueBind(INJURY_LOGGING_QUEUE, INJURY_EXCHANGE, REQUEST_BINDING_KEY);
+//        channel.queueBind(INJURY_LOGGING_QUEUE, INJURY_EXCHANGE, REPLY_BINDING_KEY);
+        this.channel.queueBind(INJURY_LOGGING_QUEUE, INJURY_EXCHANGE, "#");
         this.channel.exchangeDeclare(INFO_EXCHANGE, BuiltinExchangeType.FANOUT);
     }
 
@@ -39,7 +39,7 @@ abstract public class SystemWorker {
                     channel.basicAck(envelope.getDeliveryTag(), false);
                     System.out.println(messageHeader + message);
                     if (shouldReply) {
-                        channel.basicPublish(replyExchange, "reply." + properties.getReplyTo(), null, (message + "reply").getBytes(StandardCharsets.UTF_8));
+                        channel.basicPublish(replyExchange, properties.getReplyTo(), null, (message + "reply").getBytes(StandardCharsets.UTF_8));
                     }
                 }
 

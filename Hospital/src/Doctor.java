@@ -14,7 +14,7 @@ public class Doctor extends InjurySpecialist {
                 .Builder()
                 .replyTo(replyQueueName)
                 .build();
-        this.channel.queueBind(this.replyQueueName, INJURY_EXCHANGE, "reply." + this.replyQueueName);
+        this.channel.queueBind(this.replyQueueName, INJURY_EXCHANGE, this.replyQueueName);
         registerConsumer(this.replyQueueName, "Received: ", false, "");
     }
 
