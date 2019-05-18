@@ -15,7 +15,7 @@ class StreamBookActor extends Actor {
   override def receive: Receive = {
     case StreamBook(title) =>
       import akka.stream.scaladsl._
-      val server = sender()
+      val client = sender()
       val file = Paths.get("src/main/resources/" + title)
       implicit val materializer: ActorMaterializer = ActorMaterializer.create(context)
 
@@ -27,6 +27,6 @@ class StreamBookActor extends Actor {
           .throttle(1, 1.second, 1, ThrottleMode.shaping)
           .map(bs => StreamedMessage(bs.utf8String))
 
-      source.via(flow).runWith(Sink.actorRef(server, StreamingFinished))
+      source.via(flow).runWith(Sink.actorRef(client, StreamingFinished))
   }
 }

@@ -4,7 +4,7 @@ import akka.actor.{Actor, Props}
 import akka.event.Logging
 
 class LibraryServerActor extends Actor {
-  private implicit val databases: List[String] = List("libraryDatabase2")
+  private implicit val databases: List[String] = List("libraryDatabase1", "libraryDatabase2")
   private implicit val ordersFile: String = "src/main/resources/orders"
   val logger = Logging.getLogger(context.system, this)
 
@@ -41,7 +41,7 @@ object LibraryServerActor {
 
   final case class OrderConfirmation(title: String) extends ServerResponse
 
-  final case class BookUnavailable(title: String) extends ServerResponse
+  final case class BookUnavailable(title: String, queriedAll: Boolean) extends ServerResponse
 
   final case class StreamedMessage(line: String) extends ServerResponse
 

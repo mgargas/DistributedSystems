@@ -2,7 +2,7 @@ package Actors
 
 import java.io.FileWriter
 
-import LibraryServerActor.{OrderBook, OrderConfirmation}
+import Actors.LibraryServerActor.{OrderBook, OrderConfirmation}
 import akka.actor.Actor
 
 class OrderBookActor(implicit ordersFile: String) extends Actor {

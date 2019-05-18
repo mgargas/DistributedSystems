@@ -1,6 +1,9 @@
 package Actors
 
+import java.nio.file.NoSuchFileException
+
 import Actors.LibraryServerActor._
+import akka.actor.Status.Failure
 import akka.actor.{Actor, ActorSelection}
 import akka.event.Logging
 
@@ -17,6 +20,9 @@ class LibraryClientActor extends Actor {
       server ! StreamBook(title)
     case response: ServerResponse =>
       logger.info(response.toString)
-    case unhandled => logger.warning("Library client can not handle this message: " + unhandled)
+    case Failure(e: NoSuchFileException) =>
+      logger.warning(e.getFile + " is not available")
+    case unhandled =>
+      logger.warning("Library client can not handle this message: " + unhandled)
   }
 }

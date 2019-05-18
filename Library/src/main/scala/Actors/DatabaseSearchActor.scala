@@ -2,6 +2,9 @@ package Actors
 
 import akka.actor.Actor
 
+import scala.io.Source
+import scala.util.Try
+
 class DatabaseSearchActor(database: String) extends Actor {
 
   import DatabaseSearchActor._
@@ -14,18 +17,19 @@ class DatabaseSearchActor(database: String) extends Actor {
 
 object DatabaseSearchActor {
 
-  private def searchBook(title: String, database: String) = {
-    import scala.io.Source
-    val books: Iterator[String] = Source.fromResource(database).getLines
-    books
-      .map(_.split(":").toList)
-      .collect({
-        case _ :: bookTitle :: price :: _ if bookTitle.equals(title) =>
-          Book(bookTitle, price.toDouble)
-      })
-      .toList
+  private def searchBook(title: String, database: String): Try[List[Book]] = {
+    val dbRequest: Try[List[String]] = Try(Source.fromFile("src/main/resources/" + database).getLines.toList)
+    dbRequest map {
+      books =>
+        books
+          .map(_.split(":").toList)
+          .collect({
+            case _ :: bookTitle :: price :: _ if bookTitle.equals(title) =>
+              Book(bookTitle, price.toDouble)
+          })
+    }
   }
 
-  case class SearchDatabase(title: String)
+  final case class SearchDatabase(title: String)
 
 }
