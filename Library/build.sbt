@@ -13,6 +13,4 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-remote" % "2.5.22"
 )
 
-resourceDirectory in Compile := baseDirectory.value / "resources"
-
-resourceDirectory in Test := baseDirectory.value / "test-resources"
+resourceDirectory in Compile := baseDirectory.value / "src/main/resources"
